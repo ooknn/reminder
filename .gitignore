@@ -1,0 +1,10 @@
+build/
+bin/
+.ccls-cache/
+.clangd/
+*.tmp
+*.gch
+compile_commands.json
+*.plist
+.qmake.*
+
