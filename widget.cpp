@@ -4,18 +4,22 @@
 #include <random>
 #include <string>
 #include <vector>
-
-constexpr auto kSeconds = 1000 * 1;
-constexpr auto kMinutes = 60 * kSeconds;
-// constexpr auto kHours = 60 * kMinutes;
-constexpr auto kDelay = 5 * kSeconds;
-constexpr auto kShowInterval = 2 * kSeconds;
 static const std::vector<std::string> kMessages = {
     {"休息一下吧"},     {"该休息了"},
     {"起来走走吧"},     {"活动活动脖子吧"},
     {"不要猝死啦"},     {"命不要了吗"},
     {"女朋友不要了吗"}, {"不累吗，赶紧起来走走"},
 };
+
+static int GetNextDelaySecond()
+{
+    constexpr auto kSeconds = 1000 * 1;
+    static const std::vector<int> kDelaySeconds = {10, 2, 2, 3, 5, 2};
+    static std::size_t index = 0;
+    int delay = kDelaySeconds.at(index);
+    index = ++index == kDelaySeconds.size() ? 0 : index;
+    return delay * kSeconds;
+}
 
 Widget::Widget(QWidget* parent) : QWidget(parent)
 {
@@ -61,15 +65,12 @@ void Widget::InitSystemTray()
 }
 void Widget::InitTimer()
 {
-    show_ = new QTimer(this);
-    hide_ = new QTimer(this);
-    connect(show_, &QTimer::timeout, [this]() {
+    refresh_ = new QTimer(this);
+    connect(refresh_, &QTimer::timeout, [this]() {
         MoveWidget();
         UpdateText();
     });
-    connect(hide_, &QTimer::timeout, [this]() { HideWidget(); });
-
-    show_->start(kDelay);
+    refresh_->start(GetNextDelaySecond());
 }
 QPoint Widget::GetWidgetPosition()
 {
@@ -85,48 +86,45 @@ void Widget::MoveWidget()
     this->move(pos);
 }
 
-void Widget::HideWidget()
-{
-    hide_->stop();
-    show_->start();
-    if (this->isHidden())
-    {
-        return;
-    }
-    this->hide();
-}
-
 void Widget::UpdateText()
 {
-    show_->stop();
-    hide_->start(kShowInterval);
+    refresh_->stop();
 
-    this->hide();
-    UpdateView();
-    this->show();
+    if (this->isHidden())
+    {
+        UpdateView();
+        this->show();
+    }
+    else
+    {
+        this->hide();
+    }
+    refresh_->start(GetNextDelaySecond());
 }
 
-static int RandomMessageIndex()
+static int RandomMessageIndex(int max)
 {
     std::random_device r;
     std::default_random_engine e1(r());
-    std::uniform_int_distribution<int> uniform_dist(1, kMessages.size());
+    std::uniform_int_distribution<int> uniform_dist(0, max - 1);
     return uniform_dist(e1);
 }
 
 void Widget::UpdateView()
 {
+    auto empty = [] { return new QStandardItem{""}; };
+    //
     QDateTime current_date_time = QDateTime::currentDateTime();
     QString current_date = current_date_time.toString("hh:mm:ss");
-    auto empty_item = [] { return new QStandardItem{""}; };
-    auto time_item = new QStandardItem{current_date};
-    int index = RandomMessageIndex() - 1;
-    auto msg_item = new QStandardItem{kMessages.at(index).data()};
+    auto time = new QStandardItem{current_date};
+    //
+    int index = RandomMessageIndex(kMessages.size());
+    auto msg = new QStandardItem(kMessages.at(index).data());
 
-    QList<QStandardItem*> items;
-    items << empty_item() << time_item << empty_item() << msg_item
-          << empty_item();
     model_->clear();
+    QList<QStandardItem*> items;
+    items << empty() << time << empty() << msg << empty();
+    //
     for (const auto& view : items)
     {
         model_->appendRow(view);

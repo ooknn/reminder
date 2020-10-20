@@ -44,7 +44,7 @@ class ColorDelegate : public QStyledItemDelegate
         auto h = (opt.rect.height() - height) / 2.0;
         auto r = QRectF(opt.rect.x() + w, opt.rect.y() + h, width, height);
         QLinearGradient l(r.topLeft(), r.bottomRight());
-        l.setColorAt(0, Qt::red);
+        l.setColorAt(1.0 / 6, Qt::red);
         l.setColorAt(3.0 / 6, Qt::green);    // 二分之一
         l.setColorAt(5.0 / 6, Qt::blue);
         l.setColorAt(1, QColor(255, 0, 255));
@@ -75,7 +75,6 @@ class Widget : public QWidget
    private:
     void InitTimer();
     void MoveWidget();
-    void HideWidget();
     void InitLabel();
     void UpdateText();
     void UpdateView();
@@ -85,12 +84,11 @@ class Widget : public QWidget
     QPoint GetWidgetPosition();
 
    private:
-    QSystemTrayIcon* system_ = nullptr;
     QMenu* menu_ = nullptr;
-    QAction* quit_action_ = nullptr;
-    QStandardItemModel* model_ = nullptr;
     QListView* view_ = nullptr;
-    QTimer* show_ = nullptr;
-    QTimer* hide_ = nullptr;
+    QTimer* refresh_ = nullptr;
+    QAction* quit_action_ = nullptr;
+    QSystemTrayIcon* system_ = nullptr;
+    QStandardItemModel* model_ = nullptr;
 };
 #endif    // WIDGET_H
