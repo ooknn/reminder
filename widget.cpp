@@ -8,7 +8,7 @@
 constexpr auto kSeconds = 1000 * 1;
 constexpr auto kMinutes = 60 * kSeconds;
 // constexpr auto kHours = 60 * kMinutes;
-constexpr auto kDelay = 3 * kSeconds;
+constexpr auto kDelay = 5 * kSeconds;
 constexpr auto kShowInterval = 2 * kSeconds;
 static const std::vector<std::string> kMessages = {
     {"休息一下吧"},     {"该休息了"},
